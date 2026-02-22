@@ -69,27 +69,36 @@ class Hw1Env(environment.BaseEnv):
 
 def collect(idx, N):
     env = Hw1Env(render_mode="offscreen")
-    positions = torch.zeros(N, 2, dtype=torch.float)
-    actions = torch.zeros(N, dtype=torch.uint8)
-    imgs = torch.zeros(N, 3, 128, 128, dtype=torch.uint8)
+    imgs_before = torch.zeros(N, 3, 128, 128, dtype=torch.uint8)
+    imgs_after  = torch.zeros(N, 3, 128, 128, dtype=torch.uint8)
+    positions   = torch.zeros(N, 2, dtype=torch.float)
+    actions     = torch.zeros(N, dtype=torch.uint8)
+
     for i in range(N):
-        action_id = np.random.randint(4)
-        env.step(action_id)
-        obj_pos, pixels = env.state()
-        positions[i] = torch.tensor(obj_pos)
-        actions[i] = action_id
-        imgs[i] = pixels
         env.reset()
-    torch.save(positions, f"positions_{idx}.pt")
-    torch.save(actions, f"actions_{idx}.pt")
-    torch.save(imgs, f"imgs_{idx}.pt")
+        action_id = np.random.randint(4)
+        _, img_before = env.state()
+        env.step(action_id)
+        pos_after, img_after = env.state()
+
+        imgs_before[i] = img_before
+        imgs_after[i]  = img_after
+        positions[i]   = torch.tensor(pos_after)
+        actions[i]     = action_id
+
+    torch.save(imgs_before, f"data/imgs_before_{idx}.pt")
+    torch.save(imgs_after,  f"data/imgs_after_{idx}.pt")
+    torch.save(positions,   f"data/positions_{idx}.pt")
+    torch.save(actions,     f"data/actions_{idx}.pt")
+    print(f"Process {idx} done.")
 
 
 if __name__ == "__main__":
     processes = []
     for i in range(4):
-        p = Process(target=collect, args=(i, 100))
+        p = Process(target=collect, args=(i, 250))
         p.start()
         processes.append(p)
     for p in processes:
         p.join()
+    print("All done. 1000 samples saved to src/data/")
