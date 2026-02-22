@@ -1,4 +1,5 @@
 from multiprocessing import Process
+import os
 
 import numpy as np
 import torch
@@ -94,6 +95,7 @@ def collect(idx, N):
 
 
 if __name__ == "__main__":
+    os.makedirs("data", exist_ok=True)
     processes = []
     for i in range(4):
         p = Process(target=collect, args=(i, 250))
