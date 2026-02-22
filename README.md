@@ -10,7 +10,7 @@ This repository contains the **homework assignments** for the **Deep Learning in
   - **`homework1.py`**, **`homework2.py`**, **`homework3.py`**, **`homework4.py`** — Homework entry points and task definitions.
   - **`demo.py`** — Demo script to run the environment.
 - **`homeworks/`** — Written instructions for each homework (Markdown):
-  - [Homework 1](homeworks/homework1.md) — Train a DNN (MLP and CNN) with PyTorch.
+  - [Homework 1](homeworks/homework1.md) — Train a DNN (MLP and CNN) with PyTorch. **Implementation:** [README-hw1.md](README-hw1.md) and notebook [src/hw1.ipynb](src/hw1.ipynb).
   - [Homework 2](homeworks/homework2.md) — Deep Q-Network (DQN).
   - [Homework 3](homeworks/homework3.md) — Policy gradient (REINFORCE, SAC).
   - [Homework 4](homeworks/homework4.md) — Learning from demonstration with CNMPs.
@@ -100,6 +100,7 @@ before running.
 |------|----------|
 | Full course install guide | [docs/homeworks.html](docs/homeworks.html) (section “Preparing the Environment”) |
 | Homework 1–4 instructions | [homeworks/](homeworks/) (Markdown files) |
+| **Homework 1 implementation** | [README-hw1.md](README-hw1.md), notebook [src/hw1.ipynb](src/hw1.ipynb) |
 | Shared environment + robot assets | `src/environment.py`, `src/mujoco_menagerie/` |
 | Demo | `src/demo.py` |
 
