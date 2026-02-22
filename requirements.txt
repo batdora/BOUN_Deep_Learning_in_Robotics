@@ -1,0 +1,16 @@
+# Install in this order: mujoco first, then dm_control (avoids build issues).
+# See README and docs/homeworks.html for full setup (conda, PyTorch, etc.).
+
+mujoco==2.3.2
+dm_control==1.0.10
+numpy>=1.9.0
+scipy
+PyYAML
+matplotlib
+
+# MuJoCo GUI viewer (install from GitHub)
+mujoco-viewer @ git+https://github.com/alper111/mujoco-python-viewer.git
+
+# PyTorch (required for homeworks): prefer installing from https://pytorch.org/get-started/locally/ for your OS/CUDA
+torch
+torchvision
