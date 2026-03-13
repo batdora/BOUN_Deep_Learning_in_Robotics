@@ -104,7 +104,12 @@ LEARNING_RATE = 0.0001
 TAU = 0.005
 N_ACTIONS = 8
 STATE_DIM = 6
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+if torch.backends.mps.is_available():
+    DEVICE = torch.device("mps")
+elif torch.cuda.is_available():
+    DEVICE = torch.device("cuda")
+else:
+    DEVICE = torch.device("cpu")
 
 
 class ReplayBuffer:
