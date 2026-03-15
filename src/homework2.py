@@ -225,7 +225,7 @@ def train(num_episodes=NUM_EPISODES, render_mode="offscreen", run_name="run1",
     for this run_name already exists.  Per-episode metrics are appended to
     hw2_{run_name}_log.csv.
     """
-    print(f"Using device: {DEVICE}")
+    print(f"Using device: {DEVICE}", flush=True)
 
     os.makedirs("hw2_checkpoints", exist_ok=True)
     log_path = f"hw2_{run_name}_log.csv"
@@ -249,7 +249,7 @@ def train(num_episodes=NUM_EPISODES, render_mode="offscreen", run_name="run1",
         episode_rewards = ckpt["episode_rewards"]
         episode_rps = ckpt["episode_rps"]
         start_episode = ckpt["episode"] + 1
-        print(f"Resumed from {ckpt_path} (episode {start_episode})")
+        print(f"Resumed from {ckpt_path} (episode {start_episode})", flush=True)
 
     # Write CSV header only for new runs
     if start_episode == 0:
@@ -300,7 +300,7 @@ def train(num_episodes=NUM_EPISODES, render_mode="offscreen", run_name="run1",
         if (episode + 1) % 100 == 0:
             print(f"Episode {episode+1}/{num_episodes} | "
                   f"Avg Reward: {avg_r:.3f} | Avg RPS: {avg_rps:.3f} | "
-                  f"Eps: {eps:.3f} | Loss: {avg_loss:.5f}")
+                  f"Eps: {eps:.3f} | Loss: {avg_loss:.5f}", flush=True)
 
         # Checkpoint
         if (episode + 1) % checkpoint_every == 0:
@@ -314,12 +314,12 @@ def train(num_episodes=NUM_EPISODES, render_mode="offscreen", run_name="run1",
                 "episode_rewards": episode_rewards,
                 "episode_rps": episode_rps,
             }, ckpt_path)
-            print(f"  Checkpoint saved: {ckpt_path}")
+            print(f"  Checkpoint saved: {ckpt_path}", flush=True)
 
     # Final model save
     model_path = f"hw2_policy_{run_name}.pt"
     torch.save(agent.policy_net.state_dict(), model_path)
-    print(f"Training complete. Model saved to {model_path}")
+    print(f"Training complete. Model saved to {model_path}", flush=True)
 
     return agent, episode_rewards, episode_rps
 
