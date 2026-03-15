@@ -3,3 +3,8 @@ __pycache__
 .vscode
 src/data
 .claude/
+
+# HW2 — large/generated artifacts
+src/hw2_checkpoints/
+src/*.log
+docs/superpowers/
