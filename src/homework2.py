@@ -179,8 +179,8 @@ class DQNAgent:
         self.memory = ReplayBuffer(MEMORY_SIZE)
         self.steps_done = 0
 
-    def select_action(self, state):
-        eps = EPS_END + (EPS_START - EPS_END) * max(0, (EPS_DECAY - self.steps_done) / EPS_DECAY)
+    def select_action(self, state, eps_decay=EPS_DECAY):
+        eps = EPS_END + (EPS_START - EPS_END) * max(0, (eps_decay - self.steps_done) / eps_decay)
         self.steps_done += 1
         if random.random() < eps:
             return random.randrange(N_ACTIONS)
@@ -217,7 +217,7 @@ class DQNAgent:
 # Training
 # ---------------------------------------------------------------------------
 def train(num_episodes=NUM_EPISODES, render_mode="offscreen", run_name="run1",
-          n_splits=15, checkpoint_every=500):
+          n_splits=15, checkpoint_every=500, eps_decay=EPS_DECAY):
     """Train DQN agent.
 
     Saves checkpoints to hw2_checkpoints/{run_name}_ep{N}.pt every
@@ -267,7 +267,7 @@ def train(num_episodes=NUM_EPISODES, render_mode="offscreen", run_name="run1",
         episode_loss = []
 
         while not done:
-            action = agent.select_action(state)
+            action = agent.select_action(state, eps_decay=eps_decay)
             _, reward, terminal, truncated = env.step(action)
             next_state = env.high_level_state()
             done = terminal or truncated
@@ -287,7 +287,7 @@ def train(num_episodes=NUM_EPISODES, render_mode="offscreen", run_name="run1",
 
         avg_r = float(np.mean(episode_rewards[-100:]))
         avg_rps = float(np.mean(episode_rps[-100:]))
-        eps = EPS_END + (EPS_START - EPS_END) * max(0, (EPS_DECAY - agent.steps_done) / EPS_DECAY)
+        eps = EPS_END + (EPS_START - EPS_END) * max(0, (eps_decay - agent.steps_done) / eps_decay)
         avg_loss = float(np.mean(episode_loss)) if episode_loss else 0.0
 
         # CSV log every episode
