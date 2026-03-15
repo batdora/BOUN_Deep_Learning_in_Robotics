@@ -28,7 +28,7 @@
 
 **Results:**
 
-![Run 1](src/hw2_run1_results.png)
+![Run 1](src/hw2/hw2_run1_results.png)
 
 | Metric | Value |
 |---|---|
@@ -46,7 +46,7 @@ Epsilon decays to 0.05 after only ~200 episodes (10 000 steps ÷ ~50 steps/ep), 
 
 **Results:**
 
-![Run 2](src/hw2_run2_results.png)
+![Run 2](src/hw2/hw2_run2_results.png)
 
 | Metric | Value |
 |---|---|
@@ -65,7 +65,7 @@ Reducing `n_splits` to 15 did not meaningfully change training dynamics — rewa
 
 **Results:**
 
-![Run 3](src/hw2_run3_results.png)
+![Run 3](src/hw2/hw2_run3_results.png)
 
 | Metric | Value |
 |---|---|

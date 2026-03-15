@@ -2,8 +2,12 @@ import csv
 import glob
 import os
 import random
+import sys
 import time
 from collections import deque
+
+# Allow running from src/hw2/ or from src/
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import numpy as np
 import torch
