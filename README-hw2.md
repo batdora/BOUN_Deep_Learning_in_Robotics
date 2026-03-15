@@ -97,11 +97,15 @@ The late-training degradation is still present, though less severe. This points 
 
 ## Summary
 
-| Run | eps_decay | Final avg reward | Peak avg reward |
-|---|---|---|---|
-| Run 1 | 10 000 | 5.92 | ~7.2 |
-| Run 2 | 10 000 | 5.88 | 10.06 |
-| **Run 3** | **50 000** | **7.79** | **11.25** |
+![Run Comparison](src/hw2/hw2_comparison.png)
+
+| Run | eps_decay | Final avg reward | Peak avg reward | Log |
+|---|---|---|---|---|
+| Run 1 | 10 000 | 5.92 | ~7.2 | notebook output only |
+| Run 2 | 10 000 | 5.88 | 10.06 | `src/hw2/hw2_run2_log.csv` |
+| **Run 3** | **50 000** | **7.79** | **11.25** | `src/hw2/hw2_run3_log.csv` |
+
+Per-episode reward, RPS, loss and epsilon for Runs 2 and 3 are logged to CSV. Run 1 predates the logging addition; its 100-episode averages are taken from notebook cell output.
 
 The dominant bottleneck in this setting is insufficient exploration early in training. The network architecture and learning rate appear adequate — the agent is capable of achieving reward above 11 — but it needs enough diverse experience before transitioning to exploitation to learn a robust policy. Extending `eps_decay` from 10k to 50k steps improved final performance by **+32%** and peak performance by **+12%**.
 
