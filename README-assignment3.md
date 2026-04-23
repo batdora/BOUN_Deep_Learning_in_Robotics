@@ -80,22 +80,100 @@ The two bars have **similar means but very different spreads**: the object's std
 
 This is also why the object's predictive `std` should be larger than the end-effector's: the model cannot tell from `(t, h)` alone whether a collision will occur, so its best strategy is to emit a wide Gaussian around the expected post-contact distribution. The NLL loss rewards this honesty directly, while a plain MSE head would have no way to express it.
 
+## Versions
+
+The assignment deliverables above use **v1** — the baseline configuration specified by the task. Two further iterations were run afterwards to explore where the model's remaining error comes from; their artifacts are kept next to the v1 files and the full analysis lives in [`src/hw4/experiments.md`](src/hw4/experiments.md).
+
+| Version | Aggregator       | Hidden × Layers | `n_ctx_max` / `n_tgt_max` | Iterations | EE mean MSE | EE std | Obj mean MSE | Obj std |
+|---------|------------------|-----------------|---------------------------|------------|-------------|--------|--------------|---------|
+| v1      | mean (stock CNP) | 128 × 3         | 10 / 10                   | 20 000     | 0.000520    | 0.000473 | 0.000433   | 0.000914 |
+| v2      | mean (stock CNP) | 256 × 5         | 30 / 30                   | 60 000     | 0.000062    | 0.000105 | 0.000103   | 0.000626 |
+| v3      | cross-attention  | 256 × 5, 4 heads | 30 / 30                  | 60 000     | 0.000092    | 0.000177 | **0.000035** | **0.000058** |
+
+- **v1** is the submission-facing result. Its bar plot and MSE CSV are the deliverable.
+- **v2** is the same CNP architecture with more capacity, more context per update, and longer training. It confirms that most of v1's error is a capacity/context issue for the smooth end-effector channel, and diagnoses the remaining object-side variance as an aggregator problem rather than a capacity problem.
+- **v3** replaces the mean aggregator with multi-head cross-attention (`AttentiveCNP` in [`src/hw4/anp.py`](src/hw4/anp.py)) and collapses the object std by roughly 11× relative to v2. It is the answer to the follow-up question "how do we actually learn the object, not just widen the Gaussian around it?".
+
+### Artifacts
+
+All files live under `src/hw4/`:
+
+| File                        | v1 | v2 | v3 |
+|-----------------------------|----|----|----|
+| trained model               | [`cnmp_model.pt`](src/hw4/cnmp_model.pt) | [`cnmp_model_v2.pt`](src/hw4/cnmp_model_v2.pt) | [`anp_model_v3.pt`](src/hw4/anp_model_v3.pt) |
+| training loss (CSV / PNG)   | [`training_loss.csv`](src/hw4/training_loss.csv) / [`training_loss.png`](src/hw4/training_loss.png) | [`training_loss_v2.csv`](src/hw4/training_loss_v2.csv) / [`training_loss_v2.png`](src/hw4/training_loss_v2.png) | [`training_loss_v3.csv`](src/hw4/training_loss_v3.csv) / [`training_loss_v3.png`](src/hw4/training_loss_v3.png) |
+| MSE per test (CSV)          | [`mse_results.csv`](src/hw4/mse_results.csv) | [`mse_results_v2.csv`](src/hw4/mse_results_v2.csv) | [`mse_results_v3.csv`](src/hw4/mse_results_v3.csv) |
+| MSE bar plot (PNG)          | [`mse_barplot.png`](src/hw4/mse_barplot.png) | [`mse_barplot_v2.png`](src/hw4/mse_barplot_v2.png) | [`mse_barplot_v3.png`](src/hw4/mse_barplot_v3.png) |
+
+Shared: [`trajectories.pt`](src/hw4/trajectories.pt) (the 150 demonstrations — all three versions train on the same data).
+
+The development log — what each iteration changed, why, and what the numbers meant — is in [`src/hw4/experiments.md`](src/hw4/experiments.md).
+
 ## Reproducing
 
-From the repository root:
+From the repository root, with the `boun_robotics` conda env active:
 
 ```bash
 cd src
 python hw4/collect_demos.py -n 150 --render-mode offscreen
+```
+
+This writes `src/hw4/trajectories.pt`. The three versions then train and evaluate against that same file.
+
+### v1 — baseline (submission default)
+
+```bash
 python hw4/train_cnmp.py
 python hw4/evaluate_cnmp.py
 ```
 
-On a headless machine, first:
+### v2 — larger CNP
+
+```bash
+python hw4/train_cnmp.py \
+  --hidden-size 256 --num-hidden-layers 5 \
+  --n-context-max 30 --n-target-max 30 \
+  --iterations 60000 \
+  --model-out src/hw4/cnmp_model_v2.pt \
+  --loss-csv-out src/hw4/training_loss_v2.csv \
+  --loss-plot-out src/hw4/training_loss_v2.png
+
+python hw4/evaluate_cnmp.py \
+  --model src/hw4/cnmp_model_v2.pt \
+  --hidden-size 256 --num-hidden-layers 5 \
+  --n-context-max 30 --n-target-max 30 \
+  --csv-out src/hw4/mse_results_v2.csv \
+  --plot-out src/hw4/mse_barplot_v2.png
+```
+
+### v3 — Attentive CNP
+
+```bash
+python hw4/train_cnmp.py \
+  --model-type anp \
+  --hidden-size 256 --num-hidden-layers 5 --num-heads 4 \
+  --n-context-max 30 --n-target-max 30 \
+  --iterations 60000 \
+  --model-out src/hw4/anp_model_v3.pt \
+  --loss-csv-out src/hw4/training_loss_v3.csv \
+  --loss-plot-out src/hw4/training_loss_v3.png
+
+python hw4/evaluate_cnmp.py \
+  --model-type anp \
+  --model src/hw4/anp_model_v3.pt \
+  --hidden-size 256 --num-hidden-layers 5 --num-heads 4 \
+  --n-context-max 30 --n-target-max 30 \
+  --csv-out src/hw4/mse_results_v3.csv \
+  --plot-out src/hw4/mse_barplot_v3.png
+```
+
+### Headless machines
+
+On a machine without a display, set these before any script that touches the simulator:
 
 ```bash
 export MUJOCO_GL=egl
 export PYOPENGL_PLATFORM=egl
 ```
 
-All three scripts expose CLI flags (`--hidden-size`, `--iterations`, `--n-tests`, …) with sensible defaults — see `--help`.
+All scripts expose CLI flags (`--hidden-size`, `--iterations`, `--n-tests`, `--seed`, …) with sensible defaults — see `--help`.

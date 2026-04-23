@@ -20,6 +20,7 @@ import numpy as np
 import torch
 
 from homework4 import CNP
+from anp import AttentiveCNP
 
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -78,8 +79,12 @@ def sample_batch(x, y, batch_size, n_context, n_target, device):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--data", default=os.path.join(HERE, "trajectories.pt"))
+    parser.add_argument("--model-type", choices=["cnp", "anp"], default="cnp",
+                        help="cnp: mean-aggregator CNMP. anp: cross-attention AttentiveCNP.")
     parser.add_argument("--hidden-size", type=int, default=128)
     parser.add_argument("--num-hidden-layers", type=int, default=3)
+    parser.add_argument("--num-heads", type=int, default=4,
+                        help="Attention heads (anp only).")
     parser.add_argument("--min-std", type=float, default=0.1)
     parser.add_argument("--iterations", type=int, default=20000)
     parser.add_argument("--batch-size", type=int, default=16)
@@ -103,10 +108,18 @@ def main():
     N, T, _ = x.shape
     print(f"Dataset: N={N} trajectories, T={T} steps, d_x={D_X}, d_y={D_Y}")
 
-    model = CNP(in_shape=(D_X, D_Y),
-                hidden_size=args.hidden_size,
-                num_hidden_layers=args.num_hidden_layers,
-                min_std=args.min_std).to(device)
+    if args.model_type == "cnp":
+        model = CNP(in_shape=(D_X, D_Y),
+                    hidden_size=args.hidden_size,
+                    num_hidden_layers=args.num_hidden_layers,
+                    min_std=args.min_std).to(device)
+    else:
+        model = AttentiveCNP(in_shape=(D_X, D_Y),
+                             hidden_size=args.hidden_size,
+                             num_hidden_layers=args.num_hidden_layers,
+                             num_heads=args.num_heads,
+                             min_std=args.min_std).to(device)
+    print(f"Model: {args.model_type}")
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
 
     losses = []

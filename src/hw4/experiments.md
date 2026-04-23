@@ -101,3 +101,55 @@ There is a secondary observation in the training curve worth noting. The new thi
 The remaining heavy tail is exactly the scenario Attentive NP was designed for, so that becomes the natural iteration 3: replace the mean aggregator with cross-attention so each target can weight context points by relevance rather than uniformly. We will keep the v2 hyperparameters otherwise, so any further improvement in object std is attributable to the aggregator change and not to architectural bulk.
 
 An alternative, cheaper move is to first try expanding or biasing the dataset — more trajectories, or trajectories with `p_2.z, p_3.z` sampled from a lower-height distribution so collisions are over-represented. The reason we are *not* prioritising this is that iteration 2 already shows we can reduce easy-case error on demand; the bottleneck is no longer "we haven't seen enough easy cases", it is "we cannot turn observed evidence into a precise collision prediction". That is an aggregator problem first, a data problem second.
+
+---
+
+## Iteration 3 — Replace mean aggregation with cross-attention
+
+### Setup
+
+We kept the dataset, the v2 hyperparameters, the loss, and the evaluation protocol (same seed, same 100 tests) fixed and swapped the aggregator. The new model, implemented in [`anp.py`](anp.py) as `AttentiveCNP`, is a minimal deterministic-path Attentive Neural Process:
+
+1. **Encoder** (unchanged in spirit): an MLP over each context `(x, y)` pair produces a per-point *value* vector of size `hidden_size`.
+2. **Keys and queries**: two separate linear maps project *only* `x` (time and height) into `hidden_size`. Keys come from context `x`, queries come from target `x`. Attending on `x` alone is the natural choice here because "which other point of this trajectory is most relevant to the query at time `t*`?" is fundamentally a question about `t` and `h`, not about the observed `y` values.
+3. **Cross-attention**: multi-head attention (4 heads) lets every target point receive its own weighted blend of context values, replacing the mean aggregator. Each target now gets a *per-target* `r_j` rather than a shared, batch-wide `r`.
+4. **Decoder**: concatenates the attended vector with `target_x` and maps to `(mean, logstd)` exactly like the stock CNP. The same `softplus(logstd) + 0.1` uncertainty head is kept.
+
+No changes to the training loop, data, optimiser, or evaluation. All 60 000 iterations, `hidden_size = 256`, `num_hidden_layers = 5`, `n_context_max = n_target_max = 30`. Only the aggregator is different.
+
+### Results
+
+Training NLL moved through familiar plateaus and settled at **`-1.381`** — essentially the same value as v2 (`-1.380`). If we had only looked at the training loss, we would have concluded that attention made no difference. See [`training_loss_v3.png`](training_loss_v3.png), [`training_loss_v3.csv`](training_loss_v3.csv).
+
+Evaluation MSE on the same 100 seeded tests:
+
+| group        | v1         | v2         | v3 (ANP)   |
+|--------------|------------|------------|------------|
+| ee  mean     | 0.000520   | 0.000062   | **0.000092** |
+| ee  std      | 0.000473   | 0.000105   | **0.000177** |
+| obj mean     | 0.000433   | 0.000103   | **0.000035** |
+| obj std      | 0.000914   | 0.000626   | **0.000058** |
+
+See [`mse_barplot_v3.png`](mse_barplot_v3.png), [`mse_results_v3.csv`](mse_results_v3.csv).
+
+### What the numbers tell us
+
+This is the first iteration where the MSE shape changes qualitatively, not just scales down.
+
+The headline number is the object std dropping from **0.000626** in v2 to **0.000058** in v3 — a factor of roughly eleven. The object mean is also nearly 3× lower than v2, but the std gap is the important one. The ratio `obj_std / obj_mean` falls from `6.1` (v2) to `1.66` (v3); the distribution of object errors now looks roughly symmetric around its mean rather than heavy-tailed. In other words, the collision cases are no longer the dominant source of variance. This is exactly the behaviour the iteration-2 diagnosis predicted: once each target query can preferentially read from context points near the collision moment, the collision mode stops being washed out by mean pooling, and the model commits to specific post-contact predictions instead of widening its Gaussian around the no-motion prior.
+
+The end-effector moved in the opposite direction, slightly. Its mean MSE rose from `0.000062` to `0.000092` and its std from `0.000105` to `0.000177`. This is a mild regression and it is consistent with the rest of the story. The arm trajectory is a smooth function well suited to plain averaging: every context point carries genuine information about the Bezier curve, and mean aggregation exploits all of them. Attention now has to *learn* that mean-like behaviour from scratch, with the added overhead of computing per-target attention weights. With identical training budget and no explicit regularisation toward uniform attention, the arm precision loses a fraction of a factor — small, uninteresting, and a reasonable price to pay for the collision fix.
+
+Comparing bars directly: in v2 the object bar was noticeably wider than the end-effector bar. In v3 the picture inverts — the end-effector bar is now the taller of the two. That inversion is the clearest visual evidence that the failure mode has shifted from "object uncertainty" to "slight loss of arm precision", and the headline object-std number is small enough (`6e-5`) that for any downstream trajectory-planning use, the model is now usefully predictive of object motion rather than silently hedging.
+
+A secondary observation: NLL ended up identical between v2 and v3 despite the large MSE-shape change. This is a useful reminder that NLL averages pointwise Gaussian log-densities, and that v2 was buying comparable NLL scores by emitting wide Gaussians on collision cases (high uncertainty, low point-mass error). The same NLL can correspond to very different predictive behaviours. If this model were going to be used for decision-making — e.g., placing a catch pose for the pushed object — v3's predictive distribution is the one we would want, but NLL alone would not have told us that.
+
+### What this pushes us toward next
+
+At this point the original question ("how do we also learn the object?") is answered in the affirmative: the object trajectory is now predicted with tight error distributions, the collision mode is no longer a special case, and the heavy tail is gone. Further improvement is possible but subject to diminishing returns:
+
+- The **end-effector regression** could probably be recovered by either (a) biasing the attention toward uniform weights early in training, (b) using attention only for the object channels while keeping mean pooling for the arm channels (a heterogeneous aggregator), or (c) a small latent path on top of the deterministic attention to carry trajectory-level context.
+- **More data**, specifically collision-biased sampling, would let the attention specialise even further on the collision mode — at the cost of a more curated dataset that no longer matches the TA-provided collector.
+- A **latent-path ANP** would turn the model into a full NP with per-trajectory stochastic context, letting it express that the collision itself is fundamentally random given `(t, h)`. This would change the interpretation of the predictive std rather than the mean.
+
+None of these are strictly needed for the assignment; the object-learning question is closed. We stop here for iteration 3.

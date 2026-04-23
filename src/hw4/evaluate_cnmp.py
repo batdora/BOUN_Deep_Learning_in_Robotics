@@ -23,6 +23,7 @@ import numpy as np
 import torch
 
 from homework4 import CNP
+from anp import AttentiveCNP
 
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -54,8 +55,10 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--data", default=os.path.join(HERE, "trajectories.pt"))
     parser.add_argument("--model", default=os.path.join(HERE, "cnmp_model.pt"))
+    parser.add_argument("--model-type", choices=["cnp", "anp"], default="cnp")
     parser.add_argument("--hidden-size", type=int, default=128)
     parser.add_argument("--num-hidden-layers", type=int, default=3)
+    parser.add_argument("--num-heads", type=int, default=4)
     parser.add_argument("--min-std", type=float, default=0.1)
     parser.add_argument("--n-tests", type=int, default=100)
     parser.add_argument("--n-context-max", type=int, default=10)
@@ -74,10 +77,17 @@ def main():
     x, y = build_dataset(args.data)
     N, T, _ = x.shape
 
-    model = CNP(in_shape=(D_X, D_Y),
-                hidden_size=args.hidden_size,
-                num_hidden_layers=args.num_hidden_layers,
-                min_std=args.min_std).to(device)
+    if args.model_type == "cnp":
+        model = CNP(in_shape=(D_X, D_Y),
+                    hidden_size=args.hidden_size,
+                    num_hidden_layers=args.num_hidden_layers,
+                    min_std=args.min_std).to(device)
+    else:
+        model = AttentiveCNP(in_shape=(D_X, D_Y),
+                             hidden_size=args.hidden_size,
+                             num_hidden_layers=args.num_hidden_layers,
+                             num_heads=args.num_heads,
+                             min_std=args.min_std).to(device)
     model.load_state_dict(torch.load(args.model, map_location=device, weights_only=True))
     model.eval()
 
