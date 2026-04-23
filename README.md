@@ -1,112 +1,91 @@
 # BOUN Deep Learning in Robotics — Lecture Homeworks
 
-This repository contains the **homework assignments** for the **Deep Learning in Robotics** course (CMPE591) at **Boğaziçi University (BOUN)**. It provides a MuJoCo-based simulation environment (UR5e robot with Robotiq gripper), shared code, and instructions for four homeworks covering deep neural networks, deep reinforcement learning, and learning from demonstration.
+This repository contains the **homework assignments** for the **Deep Learning in Robotics** course (CMPE591) at **Boğaziçi University (BOUN)**. It provides a MuJoCo-based simulation environment (UR5e robot with Robotiq 2F-85 gripper), shared code, and per-homework implementations covering deep neural networks, deep reinforcement learning, and learning from demonstration.
 
-## What’s in this repo
+## What's in this repo
 
 - **`src/`** — Main code:
-  - **`environment.py`** — Shared simulation environment (tabletop, pushing, etc.).
+  - **`environment.py`** — Shared simulation environment (tabletop, pushing, IK helpers).
+  - **`demo.py`** — Minimal script that runs the environment with random actions.
+  - **`hw1/`, `hw2/`, `hw3/`, `hw4/`** — Per-homework implementations. Each directory contains the homework's environment subclass, training/evaluation scripts, and any generated artifacts (models, logs, plots).
   - **`mujoco_menagerie/`** — Robot assets (Universal Robots UR5e, Robotiq 2F-85).
-  - **`homework1.py`**, **`homework2.py`**, **`homework3.py`**, **`homework4.py`** — Homework entry points and task definitions.
-  - **`demo.py`** — Demo script to run the environment.
-- **`homeworks/`** — Written instructions for each homework (Markdown):
-  - [Homework 1](homeworks/homework1.md) — Train a DNN (MLP and CNN) with PyTorch. **Implementation (Assignment 1):** [README-assignment1.md](README-assignment1.md) and notebook [src/hw1.ipynb](src/hw1.ipynb).
-  - [Homework 2](homeworks/homework2.md) — Deep Q-Network (DQN). **Implementation (Assignment 2):** [README-assignment2.md](README-assignment2.md).
-  - [Homework 3](homeworks/homework3.md) — Policy gradient (REINFORCE, SAC). *(Not submitted — skipped in the assignment sequence.)*
-  - [Homework 4](homeworks/homework4.md) — Learning from demonstration with CNMPs. **Implementation (Assignment 3):** [README-assignment3.md](README-assignment3.md).
+- **`homeworks/`** — Official task descriptions (Markdown) provided by the course.
+- **`docs/`** — Course docs and the full "Preparing the Environment" guide ([homeworks.html](docs/homeworks.html)).
+- **`README-assignmentN.md`** — Submission-facing writeups, one per submitted assignment.
 
-> **Assignment ↔ Homework mapping.** The course homeworks (HW1–HW4) are numbered by topic. The submitted assignments are numbered sequentially in submission order, and HW3 was skipped — so Assignment 1 = HW1, Assignment 2 = HW2, Assignment 3 = HW4. Future assignments may continue to skip; the `README-assignmentN.md` naming keeps submission order stable even when the HW numbering does not.
-- **`docs/`** — Course docs and full “Preparing the Environment” guide ([homeworks.html](docs/homeworks.html)).
+## Assignments
+
+| Homework (topic) | Task spec | Submitted as | Implementation report |
+|---|---|---|---|
+| HW1 — DNN (MLP + CNN) | [homeworks/homework1.md](homeworks/homework1.md) | Assignment 1 | [README-assignment1.md](README-assignment1.md) + notebook [`src/hw1/hw1.ipynb`](src/hw1/hw1.ipynb) |
+| HW2 — Deep Q-Network | [homeworks/homework2.md](homeworks/homework2.md) | Assignment 2 | [README-assignment2.md](README-assignment2.md) |
+| HW3 — Policy gradient | [homeworks/homework3.md](homeworks/homework3.md) | *(skipped)* | — |
+| HW4 — CNMP (learning from demonstration) | [homeworks/homework4.md](homeworks/homework4.md) | Assignment 3 | [README-assignment3.md](README-assignment3.md) |
+
+The course homeworks (HW1–HW4) are numbered by topic, while the submitted assignments are numbered sequentially in submission order. HW3 was skipped, so Assignment 3 is HW4. Future assignments may continue to skip; the `README-assignmentN.md` naming keeps submission order stable even when the HW numbering does not.
 
 ## Requirements
 
-- **Python 3.9**
-- **MuJoCo** and **dm_control** for simulation
-- **PyTorch** (and torchvision) for training
-- **mujoco-python-viewer** for GUI
+- **Python 3.9** (the `mujoco==2.3.2` / `dm_control==1.0.10` pin requires 3.9 on the tested stack).
+- **MuJoCo**, **dm_control**, **mujoco-python-viewer** for simulation.
+- **PyTorch** (+ torchvision) for training.
+
+### Apple Silicon note
+
+On an M-series Mac you must use an **arm64 build of Python**. An Intel (x86_64) miniconda installed under Rosetta will fail with `ImportError: You are running an x86_64 build of Python on an Apple Silicon machine` when importing MuJoCo. Install a native arm64 Python — e.g. via [Miniforge](https://github.com/conda-forge/miniforge) (`brew install miniforge`) — and create the env from there.
 
 ## Installation
 
-### 1. Create a virtual environment (recommended)
+### 1. Create a Python 3.9 environment
 
-Use **Conda** or **Mamba** (Python 3.9):
+Using Conda or Mamba (any name works; we use `boun_robotics` below as a placeholder):
 
 ```bash
-# Conda
 conda create -n boun_robotics python=3.9
 conda activate boun_robotics
-
-# Or Mamba (faster)
-mamba create -n boun_robotics python=3.9
-mamba activate boun_robotics
 ```
 
-You can use another name instead of `boun_robotics`. Activate this environment whenever you work on the homeworks.
+### 2. Install dependencies
 
-### 2. Install simulation stack (order matters)
-
-Install **MuJoCo first**, then **dm_control** (to avoid build issues):
-
-```bash
-pip install mujoco==2.3.2
-pip install dm_control==1.0.10
-```
-
-Then install the viewer and other dependencies:
-
-```bash
-pip install git+https://github.com/alper111/mujoco-python-viewer.git
-pip install PyYAML
-conda install numpy   # or: pip install numpy
-```
-
-### 3. Install PyTorch
-
-Install PyTorch and torchvision for your OS and hardware from the [official instructions](https://pytorch.org/get-started/locally/). For example, CPU-only on macOS:
-
-```bash
-pip install torch torchvision
-```
-
-### 4. Install from this repo (optional)
-
-From the repo root you can install the rest of the Python dependencies (mujoco and dm_control should already be installed as above):
+Dependencies are pinned in [`requirements.txt`](requirements.txt) in the correct install order (MuJoCo first, then `dm_control`, then everything else). One command is enough:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-**Note:** `requirements.txt` lists `mujoco==2.3.2` and `dm_control==1.0.10` at the top so that, if you install with `pip install -r requirements.txt` in a clean environment, pip installs them in that order. If you already followed step 2, you can still run `pip install -r requirements.txt` to get numpy, scipy, PyYAML, matplotlib, torch, etc.
+This installs `mujoco==2.3.2`, `dm_control==1.0.10`, `mujoco-python-viewer` (from the `alper111` fork), `numpy`, `scipy`, `matplotlib`, `PyYAML`, `torch`, and `torchvision`.
 
-### 5. Run the demo
+> If you need a CUDA-specific PyTorch build, install it first from the [official instructions](https://pytorch.org/get-started/locally/) and then run `pip install -r requirements.txt`, which will leave PyTorch untouched.
 
-From the repository root:
+### 3. Run the demo
 
 ```bash
 cd src
 python demo.py
 ```
 
-You should see the simulation window and episodes running. If you are on a **headless/remote machine** (no display), set:
+You should see the simulation window with the UR5e arm executing random actions.
+
+### Headless machines
+
+If you're on a machine with no display (e.g. a remote server), set these before any script that opens a simulation:
 
 ```bash
 export MUJOCO_GL=egl
 export PYOPENGL_PLATFORM=egl
 ```
 
-before running.
-
 ## Quick reference
 
 | Item | Location |
-|------|----------|
-| Full course install guide | [docs/homeworks.html](docs/homeworks.html) (section “Preparing the Environment”) |
-| Homework 1–4 instructions | [homeworks/](homeworks/) (Markdown files) |
-| **Assignment 1 (HW1) implementation** | [README-assignment1.md](README-assignment1.md), notebook [src/hw1.ipynb](src/hw1.ipynb) |
-| **Assignment 2 (HW2) implementation** | [README-assignment2.md](README-assignment2.md) |
-| **Assignment 3 (HW4) implementation** | [README-assignment3.md](README-assignment3.md) |
+|---|---|
+| Full course install guide | [docs/homeworks.html](docs/homeworks.html) (section "Preparing the Environment") |
+| Homework task descriptions | [homeworks/](homeworks/) |
 | Shared environment + robot assets | `src/environment.py`, `src/mujoco_menagerie/` |
 | Demo | `src/demo.py` |
+| **Assignment 1 (HW1)** | [README-assignment1.md](README-assignment1.md) |
+| **Assignment 2 (HW2)** | [README-assignment2.md](README-assignment2.md) |
+| **Assignment 3 (HW4)** | [README-assignment3.md](README-assignment3.md) |
 
 ## License and attribution
 
