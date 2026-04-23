@@ -1,6 +1,6 @@
-# Homework 1 — Training a DNN using PyTorch
+# Assignment 1 (HW1) — Training a DNN using PyTorch
 
-This document describes the **Homework 1** implementation in this repository. For the official task description, see [homeworks/homework1.md](homeworks/homework1.md).
+This document describes the **Homework 1** implementation, submitted as **Assignment 1**. For the official task description, see [homeworks/homework1.md](homeworks/homework1.md).
 
 ## Summary
 

@@ -10,10 +10,12 @@ This repository contains the **homework assignments** for the **Deep Learning in
   - **`homework1.py`**, **`homework2.py`**, **`homework3.py`**, **`homework4.py`** — Homework entry points and task definitions.
   - **`demo.py`** — Demo script to run the environment.
 - **`homeworks/`** — Written instructions for each homework (Markdown):
-  - [Homework 1](homeworks/homework1.md) — Train a DNN (MLP and CNN) with PyTorch. **Implementation:** [README-hw1.md](README-hw1.md) and notebook [src/hw1.ipynb](src/hw1.ipynb).
-  - [Homework 2](homeworks/homework2.md) — Deep Q-Network (DQN).
-  - [Homework 3](homeworks/homework3.md) — Policy gradient (REINFORCE, SAC).
-  - [Homework 4](homeworks/homework4.md) — Learning from demonstration with CNMPs.
+  - [Homework 1](homeworks/homework1.md) — Train a DNN (MLP and CNN) with PyTorch. **Implementation (Assignment 1):** [README-assignment1.md](README-assignment1.md) and notebook [src/hw1.ipynb](src/hw1.ipynb).
+  - [Homework 2](homeworks/homework2.md) — Deep Q-Network (DQN). **Implementation (Assignment 2):** [README-assignment2.md](README-assignment2.md).
+  - [Homework 3](homeworks/homework3.md) — Policy gradient (REINFORCE, SAC). *(Not submitted — skipped in the assignment sequence.)*
+  - [Homework 4](homeworks/homework4.md) — Learning from demonstration with CNMPs. **Implementation (Assignment 3):** [README-assignment3.md](README-assignment3.md).
+
+> **Assignment ↔ Homework mapping.** The course homeworks (HW1–HW4) are numbered by topic. The submitted assignments are numbered sequentially in submission order, and HW3 was skipped — so Assignment 1 = HW1, Assignment 2 = HW2, Assignment 3 = HW4. Future assignments may continue to skip; the `README-assignmentN.md` naming keeps submission order stable even when the HW numbering does not.
 - **`docs/`** — Course docs and full “Preparing the Environment” guide ([homeworks.html](docs/homeworks.html)).
 
 ## Requirements
@@ -100,7 +102,9 @@ before running.
 |------|----------|
 | Full course install guide | [docs/homeworks.html](docs/homeworks.html) (section “Preparing the Environment”) |
 | Homework 1–4 instructions | [homeworks/](homeworks/) (Markdown files) |
-| **Homework 1 implementation** | [README-hw1.md](README-hw1.md), notebook [src/hw1.ipynb](src/hw1.ipynb) |
+| **Assignment 1 (HW1) implementation** | [README-assignment1.md](README-assignment1.md), notebook [src/hw1.ipynb](src/hw1.ipynb) |
+| **Assignment 2 (HW2) implementation** | [README-assignment2.md](README-assignment2.md) |
+| **Assignment 3 (HW4) implementation** | [README-assignment3.md](README-assignment3.md) |
 | Shared environment + robot assets | `src/environment.py`, `src/mujoco_menagerie/` |
 | Demo | `src/demo.py` |
 

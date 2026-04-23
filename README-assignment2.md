@@ -1,4 +1,4 @@
-# HW2: Deep Q-Network
+# Assignment 2 (HW2) — Deep Q-Network
 
 ## Task
 
