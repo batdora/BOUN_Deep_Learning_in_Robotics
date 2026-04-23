@@ -111,7 +111,7 @@ The development log — what each iteration changed, why, and what the numbers m
 
 ## Reproducing
 
-From the repository root, with the `boun_robotics` conda env active:
+Set up the Python environment per the top-level [`README.md`](README.md) (Python 3.9, `mujoco==2.3.2`, `dm_control==1.0.10`, `mujoco-python-viewer`, PyTorch). Then, from the repository root:
 
 ```bash
 cd src
