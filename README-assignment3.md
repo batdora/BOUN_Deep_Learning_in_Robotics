@@ -29,15 +29,15 @@ trajectories.pt
 
 ## Model
 
-Script: [`src/hw4/train_cnmp.py`](src/hw4/train_cnmp.py), using the `CNP` class from `src/hw4/homework4.py`.
+Script: [`src/hw4/train_cnmp.py`](src/hw4/train_cnmp.py), using the `CNP` class from `src/hw4/homework4.py`. The table below describes the **v1 baseline configuration** (the submission default); v2 and v3 scale `H` and depth — see the Versions table for details.
 
-| Component | Dim | Notes |
+| Component | Dim (v1) | Notes |
 |---|---|---|
 | Query `x` | 2 | `[t, h]` — time and object height |
 | Target `y` | 4 | `[e_y, e_z, o_y, o_z]` |
-| Encoder | `d_x + d_y = 6` → `H` | 3 hidden layers, ReLU, `H = 128` |
+| Encoder | `d_x + d_y = 6` → `H = 128` | 3 hidden layers, ReLU |
 | Aggregator | mean over context axis | permutation-invariant |
-| Decoder | `H + d_x = 130` → `2·d_y = 8` | outputs `(mean, logstd)` per target dim; `std = softplus(logstd) + 0.1` |
+| Decoder | `H + d_x = 130` → `2·d_y = 8` | 3 hidden layers; outputs `(mean, logstd)`, `std = softplus(logstd) + 0.1` |
 
 The decoder emits `(mean, std)` for each target point and the loss is the Gaussian NLL `−log N(y_true | mean, std)`. Predicting `std` gives the model a way to say "I'm not sure" (e.g. object position when the arm never touches the object) without being penalised as heavily as if it had to commit to a point estimate.
 
@@ -129,21 +129,23 @@ python hw4/evaluate_cnmp.py
 
 ### v2 — larger CNP
 
+(Paths below are relative to `src/` — continuing from the `cd src` used for v1.)
+
 ```bash
 python hw4/train_cnmp.py \
   --hidden-size 256 --num-hidden-layers 5 \
   --n-context-max 30 --n-target-max 30 \
   --iterations 60000 \
-  --model-out src/hw4/cnmp_model_v2.pt \
-  --loss-csv-out src/hw4/training_loss_v2.csv \
-  --loss-plot-out src/hw4/training_loss_v2.png
+  --model-out hw4/cnmp_model_v2.pt \
+  --loss-csv-out hw4/training_loss_v2.csv \
+  --loss-plot-out hw4/training_loss_v2.png
 
 python hw4/evaluate_cnmp.py \
-  --model src/hw4/cnmp_model_v2.pt \
+  --model hw4/cnmp_model_v2.pt \
   --hidden-size 256 --num-hidden-layers 5 \
   --n-context-max 30 --n-target-max 30 \
-  --csv-out src/hw4/mse_results_v2.csv \
-  --plot-out src/hw4/mse_barplot_v2.png
+  --csv-out hw4/mse_results_v2.csv \
+  --plot-out hw4/mse_barplot_v2.png
 ```
 
 ### v3 — Attentive CNP
@@ -154,17 +156,17 @@ python hw4/train_cnmp.py \
   --hidden-size 256 --num-hidden-layers 5 --num-heads 4 \
   --n-context-max 30 --n-target-max 30 \
   --iterations 60000 \
-  --model-out src/hw4/anp_model_v3.pt \
-  --loss-csv-out src/hw4/training_loss_v3.csv \
-  --loss-plot-out src/hw4/training_loss_v3.png
+  --model-out hw4/anp_model_v3.pt \
+  --loss-csv-out hw4/training_loss_v3.csv \
+  --loss-plot-out hw4/training_loss_v3.png
 
 python hw4/evaluate_cnmp.py \
   --model-type anp \
-  --model src/hw4/anp_model_v3.pt \
+  --model hw4/anp_model_v3.pt \
   --hidden-size 256 --num-hidden-layers 5 --num-heads 4 \
   --n-context-max 30 --n-target-max 30 \
-  --csv-out src/hw4/mse_results_v3.csv \
-  --plot-out src/hw4/mse_barplot_v3.png
+  --csv-out hw4/mse_results_v3.csv \
+  --plot-out hw4/mse_barplot_v3.png
 ```
 
 ### Headless machines

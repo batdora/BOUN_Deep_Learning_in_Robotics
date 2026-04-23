@@ -67,7 +67,7 @@ We held the data, the loss, the architecture family, and the evaluation protocol
 | `n_target_max`       | 10            | 30     |
 | training iterations  | 20 000        | 60 000 |
 
-We bundled all four together because they target the same hypothesis — *the baseline is starved of information and capacity* — and we wanted a cheap test of that hypothesis before considering the more invasive architectural change (attention). The evaluation seed was kept at `42`, so the 100 random tests are the *same* trajectories, context indices, and target indices as in iteration 1; only the model changed.
+We bundled all four together because they target the same hypothesis — *the baseline is starved of information and capacity* — and we wanted a cheap test of that hypothesis before considering the more invasive architectural change (attention). The evaluation seed was kept at `42` and the 100-test protocol is identical. Note that because `n_context_max` changed between versions, the per-test draws of `n_context`/`n_target` consume the random stream differently; the 100 tests are therefore drawn from the same distribution but are not index-matched between v1 and v2. All subsequent comparisons across versions are distributional, not per-test.
 
 The larger context range is especially worth highlighting. Sampling up to 30 context points from a 100-step trajectory means a typical training batch sees roughly a third of the arm's path at once, which is enough to resolve the Bezier shape. Under `n_context_max = 10` the model often had to guess the arm arc from barely-observable evidence; at 30 the arc is essentially visible.
 
@@ -75,7 +75,7 @@ The larger context range is especially worth highlighting. Sampling up to 30 con
 
 Training loss proceeded through two plateaus. The first descent mirrored v1 — a fast drop to about `-0.9`, then a brief plateau, then the familiar second step that took the loss to `-1.35` by iteration 3 000. A *third* step then appeared around iteration 11 000–12 000 that pulled the moving average down to about `-1.38` and held it there through iteration 60 000. The final 500-iteration average was **`-1.380`** versus v1's `-1.364`. In NLL terms this is a small gain, but it is consistent with the extra capacity being used rather than sitting idle. See [`training_loss_v2.png`](training_loss_v2.png), [`training_loss_v2.csv`](training_loss_v2.csv).
 
-Test MSE (same 100 seeded tests as v1):
+Test MSE (same seed and protocol as v1; see caveat above about index-matching):
 
 | group        | v1 mean   | v2 mean   | v1 std    | v2 std    |
 |--------------|-----------|-----------|-----------|-----------|
@@ -115,13 +115,13 @@ We kept the dataset, the v2 hyperparameters, the loss, and the evaluation protoc
 3. **Cross-attention**: multi-head attention (4 heads) lets every target point receive its own weighted blend of context values, replacing the mean aggregator. Each target now gets a *per-target* `r_j` rather than a shared, batch-wide `r`.
 4. **Decoder**: concatenates the attended vector with `target_x` and maps to `(mean, logstd)` exactly like the stock CNP. The same `softplus(logstd) + 0.1` uncertainty head is kept.
 
-No changes to the training loop, data, optimiser, or evaluation. All 60 000 iterations, `hidden_size = 256`, `num_hidden_layers = 5`, `n_context_max = n_target_max = 30`. Only the aggregator is different.
+No changes to the training loop, data, optimiser, or evaluation. All 60 000 iterations, `hidden_size = 256`, `num_hidden_layers = 5`, `n_context_max = n_target_max = 30`. Only the aggregator is different. Because v3 shares v2's `n_context_max`, the v2↔v3 comparison is index-matched test-by-test; the v1↔v3 comparison is distributional, for the same RNG-consumption reason discussed in iteration 2.
 
 ### Results
 
 Training NLL moved through familiar plateaus and settled at **`-1.381`** — essentially the same value as v2 (`-1.380`). If we had only looked at the training loss, we would have concluded that attention made no difference. See [`training_loss_v3.png`](training_loss_v3.png), [`training_loss_v3.csv`](training_loss_v3.csv).
 
-Evaluation MSE on the same 100 seeded tests:
+Evaluation MSE (100 tests, seed 42 — index-matched with v2):
 
 | group        | v1         | v2         | v3 (ANP)   |
 |--------------|------------|------------|------------|
