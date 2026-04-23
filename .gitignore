@@ -8,3 +8,7 @@ src/data
 src/hw2_checkpoints/
 src/*.log
 docs/superpowers/
+
+# Internal planning / dev-assistant artifacts (not part of submission)
+docs/plans/
+CLAUDE.md
