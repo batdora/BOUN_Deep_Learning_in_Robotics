@@ -8,8 +8,8 @@ scipy
 PyYAML
 matplotlib
 
-# MuJoCo GUI viewer (install from GitHub)
-mujoco-viewer @ git+https://github.com/alper111/mujoco-python-viewer.git
+# MuJoCo GUI viewer (installs as 'mujoco-python-viewer' from alper111's fork)
+mujoco-python-viewer @ git+https://github.com/alper111/mujoco-python-viewer.git
 
 # PyTorch (required for homeworks): prefer installing from https://pytorch.org/get-started/locally/ for your OS/CUDA
 torch
